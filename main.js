@@ -262,7 +262,7 @@ function submit() {
 
 
           var round = "東";
-          if (parseInt(kyoku.getAttribute("seed").split(",")[0]) > 4)
+          if (parseInt(kyoku.getAttribute("seed").split(",")[0]) > 3)
             round = "南";
 
           document.getElementById("result").innerHTML += "<div>";
