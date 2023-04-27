@@ -2,7 +2,7 @@ var result_template = {
   "rule": {
     "aka": 1
   },
-  "name":["", "", "", ""],
+  "name":["Aさん", "Bさん", "Cさん", "Dさん"],
   "log":[[
       // [<局>, <本場>, <供托棒>],
       [],
@@ -260,17 +260,44 @@ function submit() {
             curr = curr.nextSibling;
           } 
 
+          // End state
+          var end_result = "";
+          if (curr.tagName == "AGARI") {
+            var who = curr.getAttribute("who");
+            var from_who = curr.getAttribute("fromWho");
+            var ten = curr.getAttribute("ten").split(",")[1];
+            if (who == from_who) {
+              end_result = result_template["name"][who] + "ツモ " + ten + "点";
+            }
+            else {
+              end_result = result_template["name"][who] + "ロン " + ten + "点, " + result_template["name"][from_who] + "放銃";
+            }
+
+          }
+
+          else if (curr.tagName == "RYUUKYOKU") {
+            end_result = "流局";
+          }
+
 
           var round = "東";
           if (parseInt(kyoku.getAttribute("seed").split(",")[0]) > 3)
             round = "南";
 
-          document.getElementById("result").innerHTML += "<div>";
-          document.getElementById("result").innerHTML += "<h2>" + round + "" + (parseInt(kyoku.getAttribute("seed").split(",")[0]) % 4 + 1) + "局" + kyoku.getAttribute("seed").split(",")[1] + "本場</h2>";
-          document.getElementById("result").innerHTML += "<button type='button' onclick='copy(" + i + ")' class='btn btn-secondary'>Copy</button>";
-          document.getElementById("result").innerHTML += "</div>";
+          var inner_html = "";
+          inner_html += 
 
-          document.getElementById("result").innerHTML += "<div id='result" + i + "'>" + JSON.stringify(results[i]) + "</div><hr>";
+          inner_html += "<div>";
+          inner_html += "<div>";
+          inner_html += "<h3 style='display:inline'>" + round + "" + (parseInt(kyoku.getAttribute("seed").split(",")[0]) % 4 + 1) + "局" + kyoku.getAttribute("seed").split(",")[1] + "本場</h3>";
+          inner_html += "<span> " + end_result + "</span>";
+          inner_html += "</div>";
+          inner_html += "<button type='button' onclick='copy(" + i + ")' class='btn btn-secondary'>Copy</button></div>";
+          inner_html += "</div>";
+
+          inner_html += "<div id='result" + i + "'>" + JSON.stringify(results[i]) + "</div><hr>";
+
+          document.getElementById("result").innerHTML += inner_html;
 
         }
       }
