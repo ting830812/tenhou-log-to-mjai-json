@@ -136,6 +136,7 @@ function submit() {
               // http://tenhou.net/img/tehai.js
               var who = parseInt(curr.getAttribute("who"));
               var m = parseInt(curr.getAttribute("m"));
+              var kui = m & 3;
               
               // 順子 c
               if (m & (1 << 2)) {
@@ -157,66 +158,110 @@ function submit() {
               }
               // 刻子 p
               else if (m & (1 << 3)) {
+
+                var unused = (m & 0x0060) >> 5;
                 var t = (m & 0xFE00) >> 9;
+                var r = t % 3;
                 t = parseInt(t/3);
                 t *= 4;
-                var from_who = m & 3;
-                switch(from_who) {
+                var h = [t,t,t];
+                switch(unused){
+                  case 0:h[0]+=1;h[1]+=2;h[2]+=3;break;
+                  case 1:h[0]+=0;h[1]+=2;h[2]+=3;break;
+                  case 2:h[0]+=0;h[1]+=1;h[2]+=3;break;
+                  case 3:h[0]+=0;h[1]+=1;h[2]+=2;break;
+                }
+                switch(r){
+                  case 1:h.unshift(h.splice(1,1)[0]);break;
+                  case 2:h.unshift(h.splice(2,1)[0]);break;
+                }
+                if (kui<3) h.unshift(h.splice(2,1)[0]);
+                if (kui<2) h.unshift(h.splice(2,1)[0]);
+
+                switch(kui) {
                   case 1:
                     // 下家
-                    results["log"][i][5+who*3].push(paiCodeTenhouToMjai(t) + "" + paiCodeTenhouToMjai(t) + "p" + paiCodeTenhouToMjai(t));
+                    results["log"][i][5+who*3].push(paiCodeTenhouToMjai(h[0]) + "" + paiCodeTenhouToMjai(h[1]) + "p" + paiCodeTenhouToMjai(h[2]));
                     break;
                   case 2:
                     // 對家
-                    results["log"][i][5+who*3].push(paiCodeTenhouToMjai(t) + "p" + paiCodeTenhouToMjai(t) + "" + paiCodeTenhouToMjai(t));
+                    results["log"][i][5+who*3].push(paiCodeTenhouToMjai(h[0]) + "p" + paiCodeTenhouToMjai(h[1]) + "" + paiCodeTenhouToMjai(h[2]));
                     break;
                   case 3:
                     // 上家
-                    results["log"][i][5+who*3].push("p" + paiCodeTenhouToMjai(t) + "" + paiCodeTenhouToMjai(t) + "" + paiCodeTenhouToMjai(t));
+                    results["log"][i][5+who*3].push("p" + paiCodeTenhouToMjai(h[0]) + "" + paiCodeTenhouToMjai(h[1]) + "" + paiCodeTenhouToMjai(h[2]));
                     break;
                 }
               }
               // 加槓 k
               else if (m & 1 << 4) {
+
+                var added = (m & 0x0060) >> 5;
                 var t = (m & 0xFE00) >> 9;
-                t = parseInt(t / 3);
+                var r = t % 3;
+                t = parseInt(t/3);
                 t *= 4;
-                var from_who = m & 3;
-                switch(from_who) {
+                var h = [t,t,t];
+                switch(added){
+                  case 0:h[0]+=1;h[1]+=2;h[2]+=3;break;
+                  case 1:h[0]+=0;h[1]+=2;h[2]+=3;break;
+                  case 2:h[0]+=0;h[1]+=1;h[2]+=3;break;
+                  case 3:h[0]+=0;h[1]+=1;h[2]+=2;break;
+                }
+                switch(r){
+                  case 1:h.unshift(h.splice(1,1)[0]);break;
+                  case 2:h.unshift(h.splice(2,1)[0]);break;
+                }
+                if (kui<3) h.unshift(h.splice(2,1)[0]);
+                if (kui<2) h.unshift(h.splice(2,1)[0]);
+
+                switch(kui) {
                   case 1:
                     // 下家
-                    results["log"][i][6+who*3].push(paiCodeTenhouToMjai(t) + "" + paiCodeTenhouToMjai(t) + "k" + paiCodeTenhouToMjai(t) + "" + paiCodeTenhouToMjai(t));
+                    results["log"][i][6+who*3].push(paiCodeTenhouToMjai(h[0]) + "" + paiCodeTenhouToMjai(h[1]) + "k" + paiCodeTenhouToMjai(t+added) + "" + paiCodeTenhouToMjai(h[2]));
                     break;
                   case 2:
                     // 對家
-                    results["log"][i][6+who*3].push(paiCodeTenhouToMjai(t) + "k" + paiCodeTenhouToMjai(t) + "" + paiCodeTenhouToMjai(t) + "" + paiCodeTenhouToMjai(t));
+                    results["log"][i][6+who*3].push(paiCodeTenhouToMjai(h[0]) + "k" + paiCodeTenhouToMjai(t+added) + "" + paiCodeTenhouToMjai(h[1]) + "" + paiCodeTenhouToMjai(h[2]));
                     break;
                   case 3:
                     // 上家
-                    results["log"][i][6+who*3].push("k" + paiCodeTenhouToMjai(t) + "" + paiCodeTenhouToMjai(t) + "" + paiCodeTenhouToMjai(t) + "" + paiCodeTenhouToMjai(t));
+                    results["log"][i][6+who*3].push("k" + paiCodeTenhouToMjai(t+added) + "" + paiCodeTenhouToMjai(h[0]) + "" + paiCodeTenhouToMjai(h[1]) + "" + paiCodeTenhouToMjai(h[2]));
                     break;
                 }
               }
               // 明槓 m 暗槓 a
               else {
-                var t = (m & 0xFF00) >> 8;
-                var from_who = m & 3;
-                switch(from_who) {
+
+                var hai0 = (m & 0xFF00) >> 8;
+                if (!kui) hai0 = (hai0 &~ 3) + 3; // ANNKAN
+                var t = parseInt(hai0/4) * 4;
+                var h = [t,t,t];
+                switch(hai0%4){
+                  case 0:h[0]+=1;h[1]+=2;h[2]+=3;break;
+                  case 1:h[0]+=0;h[1]+=2;h[2]+=3;break;
+                  case 2:h[0]+=0;h[1]+=1;h[2]+=3;break;
+                  case 3:h[0]+=0;h[1]+=1;h[2]+=2;break;
+                }
+                if (kui==1){var a=hai0;hai0=h[2];h[2]=a;}
+                if (kui==2){var a=hai0;hai0=h[0];h[0]=a;}
+
+                switch(kui) {
                   case 0:
                     // 暗槓
-                    results["log"][i][6+who*3].push(paiCodeTenhouToMjai(t) + "" + paiCodeTenhouToMjai(t) + "" + paiCodeTenhouToMjai(t) + "a" + paiCodeTenhouToMjai(t));
+                    results["log"][i][6+who*3].push(paiCodeTenhouToMjai(h[0]) + "" + paiCodeTenhouToMjai(h[1]) + "" + paiCodeTenhouToMjai(h[2]) + "a" + paiCodeTenhouToMjai(hai0));
                     break;
                   case 1:
                     // 下家
-                    results["log"][i][5+who*3].push(paiCodeTenhouToMjai(t) + "" + paiCodeTenhouToMjai(t) + "k" + paiCodeTenhouToMjai(t) + "" + paiCodeTenhouToMjai(t));
+                    results["log"][i][5+who*3].push(paiCodeTenhouToMjai(h[0]) + "" + paiCodeTenhouToMjai(h[1]) + "" + paiCodeTenhouToMjai(h[2]) + "m" + paiCodeTenhouToMjai(hai0));
                     break;
                   case 2:
                     // 對家
-                    results["log"][i][5+who*3].push(paiCodeTenhouToMjai(t) + "k" + paiCodeTenhouToMjai(t) + "" + paiCodeTenhouToMjai(t) + "" + paiCodeTenhouToMjai(t));
+                    results["log"][i][5+who*3].push(paiCodeTenhouToMjai(h[0]) + "m" + paiCodeTenhouToMjai(hai0) + "" + paiCodeTenhouToMjai(h[1]) + "" + paiCodeTenhouToMjai(h[2]));
                     break;
                   case 3:
                     // 上家
-                    results["log"][i][5+who*3].push("k" + paiCodeTenhouToMjai(t) + "" + paiCodeTenhouToMjai(t) + "" + paiCodeTenhouToMjai(t) + "" + paiCodeTenhouToMjai(t));
+                    results["log"][i][5+who*3].push("m" + paiCodeTenhouToMjai(hai0) + "" + paiCodeTenhouToMjai(h[0]) + "" + paiCodeTenhouToMjai(h[1]) + "" + paiCodeTenhouToMjai(h[2]));
                     break;
                 }
               }
